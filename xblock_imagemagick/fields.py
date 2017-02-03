@@ -1,3 +1,4 @@
+from xblock.fields import Dict
 from xblock_ifmo.core import XBlockFieldsMixin
 from xblock.fields import Scope, String
 
@@ -9,4 +10,9 @@ class ImageMagickXBlockFields(XBlockFieldsMixin):
         default='ImageMagick Assignment',
         help="This name appears in the horizontal navigation at the top of the page.",
         scope=Scope.settings
+    )
+
+    instructor_image_meta = Dict(
+        default={},
+        scope=Scope.settings,
     )

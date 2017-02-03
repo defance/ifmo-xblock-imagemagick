@@ -1,0 +1,29 @@
+.ifmo-xblock-imagemagick-studio-image-container {
+    width: 30%;
+    height: 43px;
+    border: 1px solid darkgray;
+    background-color: lightgray;
+    border-radius: 3px;
+    display: inline-block;
+    position: relative;
+}
+
+.ifmo-xblock-imagemagick-studio-image-file {
+    opacity: 0;
+    width: 100% !important;
+    height: 100%;
+    position: absolute;
+    padding: 0 !important;
+    cursor: pointer;
+}
+
+.ifmo-xblock-imagemagick-studio-image-selected {
+    padding: 10px;
+    display: inline-block;
+    /*word-break: keep-all;*/
+    overflow: hidden;
+}
+
+.ifmo-xblock-imagemagick-studio-image-upload {
+    width: 14% !important;
+}
