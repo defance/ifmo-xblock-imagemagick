@@ -1,11 +1,19 @@
 # -*- coding=utf-8 -*-
 
+import base64
+import json
+import mimetypes
+import re
+
+from django.conf import settings
 from django.core.files.base import File
 from django.core.files.storage import default_storage
+from submissions import api as submissions_api
 from xblock.core import XBlock
 from xblock_ifmo.core import IfmoXBlock, SubmissionsMixin, XQueueMixin
 from xblock_ifmo import FragmentMakoChain, deep_update
-from xblock_ifmo import get_sha1, file_storage_path
+from xblock_ifmo import get_sha1, file_storage_path, now, reify_f
+from xmodule.util.duedate import get_extended_due_date
 from webob.response import Response
 
 from .fields import ImageMagickXBlockFields
@@ -23,6 +31,7 @@ class ImageMagickXBlock(ImageMagickXBlockFields, XQueueMixin, SubmissionsMixin, 
                                      lookup_dirs=self.get_template_dirs())
         fragment.add_content(self.load_template('xblock_imagemagick/student_view.mako'))
         fragment.add_javascript(self.load_js('student_view.js'))
+        fragment.add_css(self.load_css('student_view.css'))
         fragment.initialize_js('ImageMagickXBlockStudentView')
         return fragment
 
@@ -146,3 +155,154 @@ class ImageMagickXBlock(ImageMagickXBlockFields, XQueueMixin, SubmissionsMixin, 
             },
         })
         return context
+
+    @reify_f
+    def get_student_context(self, user=None):
+
+        parent = super(ImageMagickXBlock, self)
+        if hasattr(parent, 'get_student_context'):
+            context = parent.get_student_context(user)
+        else:
+            context = {}
+
+        context.update({
+            'allow_submissions': True if (self.due is None) or (now() < get_extended_due_date(self)) else False,
+            'task_status': self.queue_details.get('state', 'IDLE'),
+            'need_show_interface': True or self._is_studio(),
+        })
+
+        return context
+
+    @XBlock.handler
+    def upload_submission(self, request, suffix):
+
+        def _return_response(response_update=None):
+            if response_update is None:
+                response_update = {}
+            response = self.get_student_context()
+            response.update(response_update)
+            return self.get_response_user_state(response)
+
+        if self.queue_details:
+            return _return_response({
+                'message': {
+                    'text': 'Проверка другого решения уже запущена.',
+                    'type': 'error',
+                }
+            })
+
+        try:
+
+            self.message = None
+
+            # Извлечение данных о загруженном файле
+            upload = request.params['submission']
+            uploaded_file = File(upload.file)
+            uploaded_filename = upload.file.name
+            uploaded_sha1 = get_sha1(upload.file)
+            uploaded_mimetype = mimetypes.guess_type(upload.file.name)[0]
+
+            # Реальные названия файлов в ФС
+            fs_path = file_storage_path(self.location, uploaded_sha1)
+            instructor_fs_path = self.get_instructor_path()
+
+            # Сохраняем данные о решении
+            student_id = self.student_submission_dict()
+            student_answer = {
+                "sha1": uploaded_sha1,
+                "filename": uploaded_filename,
+                "mimetype": uploaded_mimetype,
+                "real_path": fs_path,
+                "instructor_real_path": instructor_fs_path,
+            }
+            submission = submissions_api.create_submission(student_id, student_answer)
+
+            # Сохраняем файл с решением
+            if default_storage.exists(fs_path):
+                default_storage.delete(fs_path)
+            default_storage.save(fs_path, uploaded_file)
+
+            payload = {
+                'method': 'check',
+                'student_info': self.queue_student_info,
+                'grader_payload': json.dumps({
+                }),
+                'student_response': self.get_queue_student_response(submission),
+            }
+
+            self.send_to_queue(
+                header=self.get_submission_header(
+                    access_key_prefix=submission.get('uuid'),
+                ),
+                body=json.dumps(payload)
+            )
+
+        except Exception as e:
+            return _return_response({
+                'message': {
+                    'text': 'Ошибка при попытке поставить проверку решения в очередь: ' + e.message,
+                    'type': 'error',
+                }
+            })
+
+        return _return_response()
+
+    @reify_f
+    def get_instructor_path(self):
+        return self.instructor_image_meta.get('fs_path')
+
+    def get_queue_student_response(self, submission=None, dump=True):
+        # TODO: Protect this with hash
+        # TODO: Вынести формирование адреса для xqueue в обобщенный интерфейс
+
+        # В некоторых случаях грейдер должен обратиться к LMS за дополнительными данными, при этом адрес LMS для
+        # грейдера может отличаться от того, который предназначен для пользователя. Например, для внешних соединений
+        # адрес представляет доменное имя с https, а грейдер внутри сети может обратиться к LMS по http/ip.
+
+        # Полный адрес обработчика с указанием протокола
+        base_url = self.runtime.handler_url(self, 'get_submitted_images', thirdparty=True)
+
+        # Получаем из настроет callback_url для xqueue
+        callback_url = settings.XQUEUE_INTERFACE.get("callback_url")
+
+        # Если он задан, перезаписываем полный адрес обработчика
+        if callback_url:
+
+            # SITENAME содержит исключительно доменное имя или ip без указания протокола
+            # Заменяем найденный в полном адресе обработчике SITENAME на callback_url
+            # TODO: Корректно обрабатывать https, если он указан в настройках
+            base_url = re.sub("http.?//%s" % settings.SITE_NAME, callback_url, base_url)
+
+        if submission is None:
+            submission = {}
+        result = {
+            'image_64_url': base_url + '/' + submission.get('uuid', ''),
+        }
+        if dump:
+            result = json.dumps(result)
+        return result
+
+    @XBlock.handler
+    def get_submitted_images(self, request, suffix):
+
+        def get_64_contents(filename):
+            with default_storage.open(filename, 'r') as f:
+                return base64.b64encode(f.read())
+
+        instructor_fs_path = self.get_instructor_path()
+
+        response = {
+            'instructor_image_name': instructor_fs_path,
+            'instructor_image': get_64_contents(instructor_fs_path),
+        }
+
+        if suffix:
+            user_id = self.student_submission_dict(anon_student_id=suffix)
+            submission = submissions_api.get_submission(user_id.get('student_id'))
+            answer = submission['answer']
+            response.update({
+                'user_image_name': answer.get('real_path'),
+                'user_image': get_64_contents(answer.get('real_path')),
+            })
+
+        return Response(json_body=response)
