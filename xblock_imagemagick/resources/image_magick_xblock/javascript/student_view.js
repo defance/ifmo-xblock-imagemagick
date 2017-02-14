@@ -5,7 +5,8 @@ function ImageMagickXBlockStudentView(runtime, element)
     var self = this;
 
     self.urls = {
-        upload_logic: runtime.handlerUrl(element, 'upload_submission')
+        upload_logic: runtime.handlerUrl(element, 'upload_submission'),
+        get_user_data: runtime.handlerUrl(element, 'get_user_data')
     };
 
     self.render = function(context)
@@ -17,6 +18,16 @@ function ImageMagickXBlockStudentView(runtime, element)
         if (context.allow_submissions) {
             xblock.find('.upload_container').html(self.template.upload_input());
             xblock.find(".file_upload").fileupload(self.upload_logic);
+        }
+
+        if (context.task_status != 'IDLE') {
+            setTimeout(function(){
+                $.post(self.urls.get_user_data, '{}', function(data) {
+                    self.render(data);
+                }).fail(function(){
+                    console.log('error');
+                })
+            }, 5000);
         }
     };
 
