@@ -8,12 +8,14 @@ import re
 from django.conf import settings
 from django.core.files.base import File
 from django.core.files.storage import default_storage
+from ifmo_submissions import api as ifmo_submissions_api
 from submissions import api as submissions_api
 from xblock.core import XBlock
 from xblock_ifmo.core import IfmoXBlock, SubmissionsMixin, XQueueMixin
 from xblock_ifmo import FragmentMakoChain, deep_update
-from xblock_ifmo import get_sha1, file_storage_path, now, reify_f
+from xblock_ifmo import get_sha1, file_storage_path, now, reify_f, xqueue_callback
 from xmodule.util.duedate import get_extended_due_date
+from xqueue_api.xblocksubmission import XBlockSubmissionResult
 from webob.response import Response
 
 from .fields import ImageMagickXBlockFields
@@ -24,6 +26,7 @@ from .fields import ImageMagickXBlockFields
 class ImageMagickXBlock(ImageMagickXBlockFields, XQueueMixin, SubmissionsMixin, IfmoXBlock):
 
     submission_type = "imagemagick_xblock"
+    xqueue_sender_name = "ifmo_xblock_imagemagick"
 
     def student_view(self, context=None):
 
@@ -306,3 +309,35 @@ class ImageMagickXBlock(ImageMagickXBlockFields, XQueueMixin, SubmissionsMixin, 
             })
 
         return Response(json_body=response)
+
+    @xqueue_callback(XBlockSubmissionResult)
+    def score_update(self, submission_result):
+
+        parent = super(ImageMagickXBlock, self)
+        if hasattr(parent, 'score_update'):
+            parent.score_update(submission_result)
+
+        submission_uid, validation_key = submission_result.lms_key.split('+')
+
+        # TODO: Validate submission
+        # submission = submissions_api.get_submission(submission_uid)
+
+        submissions_api.set_score(submission_uid, int(100*submission_result.score), 100,
+                                  annotation_reason=submission_result.msg or "undefined",
+                                  annotation_creator=self.submission_type,
+                                  annotation_type='check')
+
+        self.points = submission_result.score
+        self.runtime.publish(self, 'grade', {
+                'value': submission_result.score * self.max_score(),
+                'max_value': self.max_score()
+        })
+
+        annotation = ifmo_submissions_api.get_annotation(self.student_submission_dict())
+        self.message = None
+        try:
+            message = (json.loads(annotation.get('reason'))['message']).strip()
+            if message:
+                self.message = u"<b>Результат последней проверки:</b> %s" % message
+        except (ValueError, KeyError):
+            pass
