@@ -1,6 +1,9 @@
 from xblock.fields import Dict
+from xblock_ifmo.utils import DefaultedDescriptor
 from xblock_ifmo.core import XBlockFieldsMixin
 from xblock.fields import Scope, String
+
+from .settings import *
 
 
 class ImageMagickXBlockFields(XBlockFieldsMixin):
@@ -15,4 +18,17 @@ class ImageMagickXBlockFields(XBlockFieldsMixin):
     instructor_image_meta = Dict(
         default={},
         scope=Scope.settings,
+    )
+
+    report_storage = DefaultedDescriptor(
+        base_class=String,
+        display_name="Report storage",
+        default=REPORT_STORAGE,
+        help="",
+        scope=Scope.settings,
+    )
+
+    latest_check = Dict(
+        scope=Scope.user_state,
+        default=None
     )

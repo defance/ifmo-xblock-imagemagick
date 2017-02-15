@@ -19,6 +19,7 @@ from xqueue_api.xblocksubmission import XBlockSubmissionResult
 from webob.response import Response
 
 from .fields import ImageMagickXBlockFields
+from .settings import REPORT_STORAGE
 
 
 @XBlock.wants("user")
@@ -172,6 +173,7 @@ class ImageMagickXBlock(ImageMagickXBlockFields, XQueueMixin, SubmissionsMixin, 
             'allow_submissions': True if (self.due is None) or (now() < get_extended_due_date(self)) else False,
             'task_status': self.queue_details.get('state', 'IDLE'),
             'need_show_interface': True or self._is_studio(),
+            'latest_check': self.latest_check,
         })
 
         return context
@@ -195,8 +197,6 @@ class ImageMagickXBlock(ImageMagickXBlockFields, XQueueMixin, SubmissionsMixin, 
             })
 
         try:
-
-            self.message = None
 
             # Извлечение данных о загруженном файле
             upload = request.params['submission']
@@ -333,11 +333,20 @@ class ImageMagickXBlock(ImageMagickXBlockFields, XQueueMixin, SubmissionsMixin, 
                 'max_value': self.max_score()
         })
 
-        annotation = ifmo_submissions_api.get_annotation(self.student_submission_dict())
-        self.message = None
+        self.latest_check = None
         try:
-            message = (json.loads(annotation.get('reason'))['message']).strip()
-            if message:
-                self.message = u"<b>Результат последней проверки:</b> %s" % message
+            annotation = ifmo_submissions_api.get_annotation(self.student_submission_dict())
+            message_dict = json.loads(annotation.get('reason'))
+
+            # edx-submission prevents datetime to be converted to str, do it manually
+            # TODO: Create own serializer for Score model
+            score = annotation.get("score")
+            score["created_at"] = str(score["created_at"])
+
+            self.latest_check = {
+                "score": score,
+                "report_file": message_dict.get('report_file', 'blank.png'),
+                "report_storage": REPORT_STORAGE,
+            }
         except (ValueError, KeyError):
             pass

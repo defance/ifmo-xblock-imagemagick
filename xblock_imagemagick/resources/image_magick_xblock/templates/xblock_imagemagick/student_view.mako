@@ -79,6 +79,24 @@
     <%text><% if (need_show_interface) { %></%text>
         ${meta['text']}
     <%text><% } %></%text>
+
+
+    <%text>
+        <% if (task_status == 'IDLE' && latest_check != null) { %>
+            <%
+                // should we "earned_score = student_state.score.max.earned"?
+                earned_score = latest_check.score.points_earned / latest_check.score.points_possible * student_state.score.max;
+                max_score = student_state.score.max;
+            %>
+            <div class="ifmo-xblock-message ifmo-xblock-message-info">
+                <p>Результат последней проверки: <b><%= earned_score %> / <%= max_score %></b> баллов</p>
+                    <p>
+                        <img scr="<%= latest_check.report_storage %><%= latest_check.report_file %>"/>
+                    </p>
+            </div>
+        <% } %>
+    </%text>
+
 </%block>
 
 <%block name="controllers_box">
