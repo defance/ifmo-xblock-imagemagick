@@ -61,6 +61,7 @@ class ImageMagickXBlock(ImageMagickXBlockFields, XQueueMixin, SubmissionsMixin, 
         result = super(ImageMagickXBlock, self).save_settings(data)
 
         self.allowable_fuzz = data.get("allowable_fuzz")
+        self.cut_off = data.get("cut_off")
 
         # Извлекаем информацию об оригинальном архиве и драфте
         fs_path = self.instructor_image_meta.get('fs_path')
@@ -156,6 +157,7 @@ class ImageMagickXBlock(ImageMagickXBlockFields, XQueueMixin, SubmissionsMixin, 
             'metadata': {
                 'instructor_image': self.instructor_image_meta,
                 'allowable_fuzz': self.allowable_fuzz,
+                'cut_off': self.cut_off,
             },
         })
         return context
