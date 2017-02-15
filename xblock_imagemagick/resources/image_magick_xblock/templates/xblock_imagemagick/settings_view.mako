@@ -18,4 +18,12 @@
         <span class="tip setting-help"></span>
     </li>
 
+    <li class="field comp-setting-entry">
+        <div class="wrapper-comp-setting">
+            <label for="input_${id}_allowable_fuzz" class="label setting-label">Возможное расхождение (fuzz)</label>
+            <input id="input_${id}_allowable_fuzz" class="input setting-input" type="text" name="allowable_fuzz" value="<%text><%= allowable_fuzz %></%text>" />
+        </div>
+        <span class="tip setting-help">Максимальное допустимое отличие от исходного изображения в процентах. По умолчанию 80%.</span>
+    </li>
+
 </%block>

@@ -1,7 +1,7 @@
 from xblock.fields import Dict
 from xblock_ifmo.utils import DefaultedDescriptor
 from xblock_ifmo.core import XBlockFieldsMixin
-from xblock.fields import Scope, String
+from xblock.fields import Scope, String, Integer
 
 from .settings import *
 
@@ -31,4 +31,9 @@ class ImageMagickXBlockFields(XBlockFieldsMixin):
     latest_check = Dict(
         scope=Scope.user_state,
         default=None
+    )
+
+    allowable_fuzz = Integer(
+        scope=Scope.settings,
+        default=DEFAULT_FUZZ
     )

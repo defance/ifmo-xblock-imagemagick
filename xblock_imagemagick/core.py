@@ -57,12 +57,10 @@ class ImageMagickXBlock(ImageMagickXBlockFields, XQueueMixin, SubmissionsMixin, 
         return fragment
 
     @XBlock.json_handler
-    def save_settings(self, data, suffix=''):
-        return super(ImageMagickXBlock, self).save_settings(data)
-
-    @XBlock.json_handler
     def save_settings(self, data, suffix):
         result = super(ImageMagickXBlock, self).save_settings(data)
+
+        self.allowable_fuzz = data.get("allowable_fuzz")
 
         # Извлекаем информацию об оригинальном архиве и драфте
         fs_path = self.instructor_image_meta.get('fs_path')
@@ -157,6 +155,7 @@ class ImageMagickXBlock(ImageMagickXBlockFields, XQueueMixin, SubmissionsMixin, 
         deep_update(context, {
             'metadata': {
                 'instructor_image': self.instructor_image_meta,
+                'allowable_fuzz': self.allowable_fuzz,
             },
         })
         return context
@@ -230,6 +229,7 @@ class ImageMagickXBlock(ImageMagickXBlockFields, XQueueMixin, SubmissionsMixin, 
                 'method': 'check',
                 'student_info': self.queue_student_info,
                 'grader_payload': json.dumps({
+                    "allowable_fuzz": self.allowable_fuzz,
                 }),
                 'student_response': self.get_queue_student_response(submission),
             }
