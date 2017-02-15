@@ -21,7 +21,7 @@
     padding: 10px;
     display: inline-block;
     /*word-break: keep-all;*/
-    overflow: hidden;
+    /*overflow: hidden;*/
 }
 
 .ifmo-xblock-imagemagick-studio-image-upload {
