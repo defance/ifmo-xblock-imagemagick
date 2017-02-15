@@ -6,7 +6,8 @@ function ImageMagickXBlockStudentView(runtime, element)
 
     self.urls = {
         upload_logic: runtime.handlerUrl(element, 'upload_submission'),
-        get_user_data: runtime.handlerUrl(element, 'get_user_data')
+        get_user_data: runtime.handlerUrl(element, 'get_user_data'),
+        download_image: runtime.handlerUrl(element, 'download_image')
     };
 
     self.render = function(context)
@@ -41,9 +42,9 @@ function ImageMagickXBlockStudentView(runtime, element)
         var template = _.partial(self.get_template, element);
         self.add_templates(self, {
             main: template('script.ifmo-xblock-template-base'),
-            upload_input: template("script.scilab-template-upload-input"),
-            upload_selected: template("script.scilab-template-upload-selected"),
-            annotation: template("script.scilab-template-annotation")
+            upload_input: template("script.imagemagick-template-upload-input"),
+            upload_selected: template("script.imagemagick-template-upload-selected"),
+            annotation: template("script.imagemagick-template-annotation")
         });
 
         self.render(context);
@@ -86,6 +87,30 @@ function ImageMagickXBlockStudentView(runtime, element)
             self.helpers.enable_controllers(self.element);
         }
     };
+
+    self.add_hooks(self, {
+        render_student_answer: function(data) {
+
+            console.log(data);
+
+            // Поскольку у нас нет доступа к идентификатору решения здесь,
+            // нам нужен дополнитеьный хендлер, получающий файл по его SHA,
+            // минуя обращение к submissions.api.
+            var student_file_id = data.sha1;
+            var instructor_file_id = /([^\/]*)$/.exec(data.instructor_real_path)[0];
+
+            var student_url = self.urls.download_image + '/student?' + student_file_id;
+            var instructor_url = self.urls.download_archive + '/instructor_prev?' + instructor_file_id;
+
+            return '<p>' +
+                '<a href="' + student_url + '" class="button">Скачать решение ' + data.filename + '</a> ' +
+                '<a href="' + instructor_url + '" class="button">Скачать проверяющий архив</a>' +
+                '</p>';
+        },
+        render_annotation: function(data) {
+            return self.template.annotation(data);
+        }
+    });
 
     self.init_xblock_ready($, _);
 }

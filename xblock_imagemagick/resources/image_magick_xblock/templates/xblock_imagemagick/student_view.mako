@@ -122,21 +122,21 @@
 </%block>
 
 <%block name="upload_template">
-    <script type="text/template" class="scilab-template-upload-input">
+    <script type="text/template" class="imagemagick-template-upload-input">
         <div class="button upload_input">
             <span>Выберите файл</span>
             <input class="file_upload" type="file" name="submission"/>
         </div>
     </script>
 
-    <script type="text/template" class="scilab-template-upload-selected">
+    <script type="text/template" class="imagemagick-template-upload-selected">
         <button class="button upload_another">Выбрать другой файл</button>
         <button class="button button-highlighted upload_do" data-in-progress="Идёт отправка...">Отправить <%text><%= filename %></%text></button>
     </script>
 </%block>
 
 <%block name="annotation_template"><%text>
-<script type="text/template" class="scilab-template-annotation">
+<script type="text/template" class="imagemagick-template-annotation">
 <%
     try {
         annotation_details = JSON.parse(annotation.reason);
@@ -145,13 +145,16 @@
         annotation = {annotation_type: 'annotation parse error'};
         console.error(err);
     }
+    console.log(annotation_details);
 %>
     <style>
         table.annotation td {text-align: left;}
         table.annotation pre {margin: 0; padding: 0; font-size: 0.8em;}
     </style>
     <table class="annotation vertical">
-        <tr><th>Type</th><td>N/A</td></tr>
+        <tr><th>Report Image</th><td><%= annotation_details.report_file %></td></tr>
+        <tr><th>Output</th><td><pre><%= annotation_details.output %></pre></td></tr>
+        <tr><th>Error Output</th><td><pre><%= annotation_details.err_output %></pre></td></tr>
     </table>
 </script>
 </%text></%block>
