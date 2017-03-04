@@ -40,5 +40,10 @@ class ImageMagickXBlockFields(XBlockFieldsMixin):
 
     cut_off = Integer(
         scope=Scope.settings,
-        default=DEFAULT_CUT_OFF
+        default=DEFAULT_CUT_OFF,
+    )
+
+    extra_cmd_settings = String(
+        scope=Scope.settings,
+        default=DEFAULT_EXTRA_CMD_SETTINGS,
     )

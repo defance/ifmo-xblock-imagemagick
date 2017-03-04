@@ -34,4 +34,12 @@
         <span class="tip setting-help">Максимальное допустимое отличие от исходного изображения в процентах. По-умолчанию 80%.</span>
     </li>
 
+    <li class="field comp-setting-entry">
+        <div class="wrapper-comp-setting">
+            <label for="input_${id}_extra_cmd_settings" class="label setting-label">Дополнительные настройки</label>
+            <input id="input_${id}_extra_cmd_settings" class="input setting-input" type="text" name="extra_cmd_settings" value="<%text><%= _.escape(extra_cmd_settings) %></%text>" />
+        </div>
+        <span class="tip setting-help">Дополнительные настройки в формате json.</span>
+    </li>
+
 </%block>

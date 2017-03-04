@@ -62,6 +62,7 @@ class ImageMagickXBlock(ImageMagickXBlockFields, XQueueMixin, SubmissionsMixin, 
 
         self.allowable_fuzz = data.get("allowable_fuzz")
         self.cut_off = data.get("cut_off")
+        self.extra_cmd_settings = data.get("extra_cmd_settings")
 
         # Извлекаем информацию об оригинальном архиве и драфте
         fs_path = self.instructor_image_meta.get('fs_path')
@@ -158,6 +159,7 @@ class ImageMagickXBlock(ImageMagickXBlockFields, XQueueMixin, SubmissionsMixin, 
                 'instructor_image': self.instructor_image_meta,
                 'allowable_fuzz': self.allowable_fuzz,
                 'cut_off': self.cut_off,
+                'extra_cmd_settings': self.extra_cmd_settings,
             },
         })
         return context
@@ -232,6 +234,7 @@ class ImageMagickXBlock(ImageMagickXBlockFields, XQueueMixin, SubmissionsMixin, 
                 'student_info': self.queue_student_info,
                 'grader_payload': json.dumps({
                     "allowable_fuzz": self.allowable_fuzz,
+                    "extra_cmd_settings": self.extra_cmd_settings,
                 }),
                 'student_response': self.get_queue_student_response(submission),
             }
