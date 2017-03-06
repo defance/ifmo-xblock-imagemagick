@@ -91,8 +91,6 @@ function ImageMagickXBlockStudentView(runtime, element)
     self.add_hooks(self, {
         render_student_answer: function(data) {
 
-            console.log(data);
-
             // Поскольку у нас нет доступа к идентификатору решения здесь,
             // нам нужен дополнитеьный хендлер, получающий файл по его SHA,
             // минуя обращение к submissions.api.
