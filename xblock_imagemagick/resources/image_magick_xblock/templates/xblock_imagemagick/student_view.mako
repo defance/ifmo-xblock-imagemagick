@@ -90,9 +90,9 @@
             %>
             <div class="ifmo-xblock-message ifmo-xblock-message-info">
                 <p>Результат последней проверки: <b><%= earned_score %> / <%= max_score %></b> баллов</p>
-                    <p>
-                        <img src="<%= latest_check.report_storage %><%= latest_check.report_file %>"/>
-                    </p>
+##                     <p>
+##                         <img src="<%= latest_check.report_storage %><%= latest_check.report_file %>"/>
+##                     </p>
             </div>
         <% } %>
     </%text>
