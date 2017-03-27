@@ -90,11 +90,17 @@
             %>
             <div class="ifmo-xblock-message ifmo-xblock-message-info">
                 <p style="margin-bottom: 0;">Результат последней проверки: <b><%= earned_score %> / <%= max_score %></b> баллов</p>
-                     <!--
-                     <p>
-                         <img src="<%= latest_check.report_storage %><%= latest_check.report_file %>"/>
-                     </p>
-                     -->
+                    <% if(earned_score != max_score) { %>
+                        <% if(latest_check.report_file != ''){ %>
+                            <p>
+                                <img src="<%= latest_check.report_storage %><%= latest_check.report_file %>"/>
+                            </p>
+                        <% } else if(latest_check.message != '') { %>
+                            <p><b>Дополнительные сведения:</b> <%= latest_check.message %></p>
+
+
+                        <% } %>
+                    <% } %>
             </div>
         <% } %>
     </%text>
@@ -153,8 +159,20 @@
         table.annotation td {text-align: left;}
         table.annotation pre {margin: 0; padding: 0; font-size: 0.8em;}
     </style>
+    <%
+        // TODO: Remove temporary hardcode
+        report_storage = "http://era.de.ifmo.ru/check/reports/";
+    %>
     <table class="annotation vertical">
-        <tr><th>Report Image</th><td><%= annotation_details.report_file %></td></tr>
+        <tr><th>Report Image</th><td>
+            <% if(annotation_details.report_file != '') { %>
+                <% report_image = report_storage + annotation_details.report_file; %>
+                <p><a href="<%= report_image %>"><%= annotation_details.report_file %></a></p>
+                <p><img src="<%= report_image %>"/></p>
+            <% } else { %>
+                No image
+            <% }%>
+        </td></tr>
         <tr><th>Output</th><td><pre><%= annotation_details.output %></pre></td></tr>
         <tr><th>Error Output</th><td><pre><%= annotation_details.err_output %></pre></td></tr>
     </table>

@@ -351,8 +351,9 @@ class ImageMagickXBlock(ImageMagickXBlockFields, XQueueMixin, SubmissionsMixin, 
 
             self.latest_check = {
                 "score": score,
-                "report_file": message_dict.get('report_file', 'blank.png'),
+                "report_file": message_dict.get('report_file', ''),
                 "report_storage": REPORT_STORAGE,
+                "message": message_dict.get('err_output', 'Произошла неизвестная ошибка при сравнении изображений.'),
             }
         except (ValueError, KeyError):
             pass
