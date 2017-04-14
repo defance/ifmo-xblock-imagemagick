@@ -98,7 +98,7 @@ function ImageMagickXBlockStudentView(runtime, element)
             var instructor_file_id = /([^\/]*)$/.exec(data.instructor_real_path)[0];
 
             var student_url = self.urls.download_image + '/student?' + student_file_id;
-            var instructor_url = self.urls.download_archive + '/instructor_prev?' + instructor_file_id;
+            var instructor_url = self.urls.download_image + '/instructor_prev?' + instructor_file_id;
 
             return '<p>' +
                 '<a href="' + student_url + '" class="button">Скачать решение ' + data.filename + '</a> ' +
