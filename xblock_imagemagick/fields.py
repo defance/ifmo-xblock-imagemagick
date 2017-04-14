@@ -38,7 +38,7 @@ class ImageMagickXBlockFields(XBlockFieldsMixin):
         default=DEFAULT_FUZZ
     )
 
-    cut_off = Integer(
+    cut_off = String(
         scope=Scope.settings,
         default=DEFAULT_CUT_OFF,
     )

@@ -18,6 +18,7 @@
         <span class="tip setting-help"></span>
     </li>
 
+    <!--
     <li class="field comp-setting-entry">
         <div class="wrapper-comp-setting">
             <label for="input_${id}_cut_off" class="label setting-label">Порог непохожести</label>
@@ -25,6 +26,7 @@
         </div>
         <span class="tip setting-help">Порог различия в процентах всех пикселей, после которого изображения будут считаться непохожими. По-умолчанию 0%.</span>
     </li>
+    -->
 
     <li class="field comp-setting-entry">
         <div class="wrapper-comp-setting">
@@ -39,7 +41,7 @@
             <label for="input_${id}_extra_cmd_settings" class="label setting-label">Дополнительные настройки</label>
             <input id="input_${id}_extra_cmd_settings" class="input setting-input" type="text" name="extra_cmd_settings" value="<%text><%= _.escape(extra_cmd_settings) %></%text>" />
         </div>
-        <span class="tip setting-help">Дополнительные настройки в формате json. Допустимые поля объекта: <i>quality_fuzz</i>, <i>report_size</i>.</span>
+        <span class="tip setting-help">Дополнительные настройки в формате json. Допустимые поля объекта: <i>cut_off</i>, <i>quality_fuzz</i>, <i>report_size</i>.</span>
     </li>
 
 </%block>
